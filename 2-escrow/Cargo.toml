@@ -1,0 +1,21 @@
+[package]
+name = "escrow"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+gstd = { workspace = true, features = ["debug"] }
+parity-scale-codec.workspace = true
+scale-info.workspace = true
+gmeta.workspace = true
+escrow-io.workspace = true
+
+[build-dependencies]
+gmeta.workspace = true
+gear-wasm-builder.workspace = true
+escrow-io.workspace = true
+
+[dev-dependencies]
+gtest.workspace = true
