@@ -62,3 +62,64 @@ fn deposit_failures() {
     let res = escrow.send_with_value(BUYER, EscrowAction::Deposit, PRICE);
     assert!(res.main_failed());
 }
+
+
+#[test]
+fn confirm_delivery() {
+    let sys = System::new();
+    init_escrow(&sys);
+
+    let escrow = sys.get_program(ESCROW_ID);
+
+    // successful deposit
+    sys.mint_to(BUYER, PRICE);
+    let res = escrow.send_with_value(BUYER, EscrowAction::Deposit, PRICE);
+    assert!(!res.main_failed());
+
+    // successful delivery confirming
+    let res = escrow.send(BUYER, EscrowAction::ConfirmDelivery);
+    let log = Log::builder()
+        .dest(BUYER)
+        .payload(EscrowEvent::DeliveryConfirmed);
+    assert!(!res.main_failed());
+    assert!(res.contains(&log));
+
+    //claim the value from the mailbox
+    sys.claim_value_from_mailbox(SELLER);
+    assert_eq!(sys.balance_of(SELLER), PRICE);
+}
+
+
+#[test]
+fn confirm_delivery_failures() {
+    let sys = System::new();
+    init_escrow(&sys);
+
+    let escrow = sys.get_program(ESCROW_ID);
+
+    sys.mint_to(BUYER, PRICE);
+
+    // must fail since the state must be `AwaitingDelivery`
+    let res = escrow.send(SELLER, EscrowAction::ConfirmDelivery);
+    assert!(res.main_failed());
+
+    // successful deposit
+    let res = escrow.send_with_value(BUYER, EscrowAction::Deposit, PRICE);
+    assert!(!res.main_failed());
+
+    // must fail since msg::source must be the buyer to confirm delivery
+    let res = escrow.send(SELLER, EscrowAction::ConfirmDelivery);
+    assert!(res.main_failed());
+
+    // successful delivery confirming
+    let res = escrow.send(BUYER, EscrowAction::ConfirmDelivery);
+    let log = Log::builder()
+        .dest(BUYER)
+        .payload(EscrowEvent::DeliveryConfirmed);
+    assert!(!res.main_failed());
+    assert!(res.contains(&log));
+
+    // claim value for the seller
+    sys.claim_value_from_mailbox(SELLER);
+    assert_eq!(sys.balance_of(SELLER), PRICE);
+}
