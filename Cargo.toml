@@ -18,6 +18,10 @@ members = [
     "tmg-io"
 ]
 
+exclude = [
+    "tamagotchi1"
+]
+
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
