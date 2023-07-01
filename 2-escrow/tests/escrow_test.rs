@@ -55,11 +55,10 @@ fn deposit_failures() {
     let res = escrow.send(SELLER, EscrowAction::Deposit);
     assert!(res.main_failed());
 
-    // successful deposit
-    let res = escrow.send_with_value(BUYER, EscrowAction::Deposit, PRICE);
-    assert!(!res.main_failed());
 
     // must fail since the state must be `AwaitingPayment`
+    let res = escrow.send_with_value(BUYER, EscrowAction::Deposit, PRICE);
+    assert!(!res.main_failed());// successful deposit
     let res = escrow.send_with_value(BUYER, EscrowAction::Deposit, PRICE);
     assert!(res.main_failed());
 }

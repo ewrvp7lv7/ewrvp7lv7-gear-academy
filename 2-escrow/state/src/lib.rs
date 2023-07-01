@@ -1,3 +1,8 @@
+//! # escrow-state
+//!
+//! independent crate for reading the state
+//! Once we've built the crate, we'll have a file called `escrow_state.meta.wasm` that we can use in our UI applications to interact with the smart contract.
+
 #![no_std]
 
 use escrow_io::*;
