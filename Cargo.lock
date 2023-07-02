@@ -3479,6 +3479,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "tamagotchi6"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "ft-main-io",
+ "gear-wasm-builder 0.1.2 (git+https://github.com/gear-tech/gear.git?branch=academy)",
+ "gstd",
+ "gtest 0.1.0 (git+https://github.com/gear-tech/gear.git?branch=testnet)",
+ "parity-scale-codec",
+ "scale-info",
+ "store-io",
+ "tamagotchi6-io",
+]
+
+[[package]]
+name = "tamagotchi6-io"
+version = "0.1.0"
+dependencies = [
+ "gmeta 0.1.0 (git+https://github.com/gear-tech/gear.git?branch=academy)",
+ "gstd",
+ "parity-scale-codec",
+ "scale-info",
+]
+
+[[package]]
 name = "tap"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
