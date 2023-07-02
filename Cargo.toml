@@ -15,7 +15,10 @@ members = [
     "6-program-factory/escrow/io",
     "7-battle",
     "7-battle/io",
-    "tmg-io"
+    "tmg-io",
+
+    "tamagotchi.5",
+    "tamagotchi.5/io",
 ]
 
 exclude = [
@@ -47,3 +50,5 @@ store-io = { path = "4-store/io" }
 subxt = { version = "0.27", default-features = false }
 tmg-io = { path = "tmg-io" }
 tokio = "1"
+
+tamagotchi-io = { path = "tamagotchi.5/io" }
