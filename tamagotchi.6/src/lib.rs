@@ -1,12 +1,15 @@
-//! #3. Homework "Tamagotchi"
+//! #5. Homework "Tamagotchi NFT"
 #![no_std]
 
-use gstd::{msg, debug, prelude::*, exec::{block_timestamp, block_height}};
-use tamagotchi_io::{Tamagotchi, TmgAction, TmgEvent};
+use gstd::{msg, debug, prelude::*, ActorId, exec::{block_timestamp, block_height}};
+use tamagotchi6_io::{Tamagotchi, TmgAction, TmgEvent};
+
+mod nftt;
+
+use nftt::{NFTamagotchi, TamagotchiShop};
 
 static mut STATE: Option<Tamagotchi> = None;
 static mut MOOD: Option<Mood> = None;
-
 
 //Mood: Fed (from 1 to 10000), Happy (from 1 to 10000) and Rested (from 1 to 10000).
 pub struct Mood {
@@ -117,6 +120,20 @@ impl Mood {
             0,
         ).expect("Failed to share TmgEvent");
     }
+
+    fn set_ft_contract(&mut self, actor_id: &ActorId) {
+        let tamagotchi = unsafe {
+            STATE.as_mut().expect("The contract is not initialized")
+        };
+        assert_eq!(msg::source(), tamagotchi.owner, "Only owner can feed the tamagotchi");
+
+        tamagotchi.ft_contract_id = *actor_id;
+
+        msg::reply(
+            TmgEvent::SetFTokenContract,
+            0,
+        ).expect("Failed to share the TmgEvent");
+    }
 }
 
 #[no_mangle]
@@ -129,7 +146,27 @@ extern "C" fn init() {
 
     // let name: String = msg::load().expect("Can't load tamagotchi name");
 
-    let date_of_birth = block_timestamp();
+// [*] Upload code "FT Storage"
+//     [*] Code hash: 0x5bf27311ebedd5052f5109518d83221977449d6898c4040c94ba9c2ac271ec77
+//     [*] Code is already uploaded in block
+// 0x1bd29a68ea48c5acde9abb6c4081cd763d8f46e5255d2eaa7317080bac79ce3e
+//
+//     [*] Upload code "FT Logic"
+//     [*] Code hash: 0x33a860e1e62e5c4a6aa0cb31ab8216662c5c5b2603c85e1b3e0c96983e8b75e7
+//     [*] Code is already uploaded in block 0x06f2002aa7a0d1b281fcdfaad5f8fa0399a6f77e7cf076aedf965f147a36fd73
+//
+//     [*] Upload Fungible Token
+//     [*] Calculated gas: 391,031,092
+//     [*] Program id:
+// 0xfa282c3f5bc1f120873235f2cbe27b700c8f0d58666b93f6ba59f442f619b006
+
+    // 0xe6eb8542ac1b1c09ff1269d5eaaecbd455d7cdaaa43b3db1ccaac1f874d6d68d
+
+    let bytes: [u8; 32] = [
+        0xfa, 0x28, 0x2c, 0x3f, 0x5b, 0xc1, 0xf1, 0x20,
+        0x87, 0x32, 0x35, 0xf2, 0xcb, 0xe2, 0x7b, 0x70,
+        0x0c, 0x8f, 0x0d, 0x58, 0x66, 0x6b, 0x93, 0xf6,
+        0xba, 0x59, 0xf4, 0x42, 0xf6, 0x19, 0xb0, 0x06];
 
     let bh = block_height();
 
@@ -146,13 +183,16 @@ extern "C" fn init() {
         STATE = Some(Tamagotchi {
             owner,
             name,
-            date_of_birth,
+            date_of_birth: block_timestamp(),
             fed: INT_NUM,
             rested: INT_NUM,
             entertained: INT_NUM,
             fed_block: bh.clone(),
             entertained_block: bh.clone(),
             rested_block: bh.clone(),
+            allowed_account: None,
+            ft_contract_id: ActorId::new(bytes),
+            transaction_id: 0,
         });
     };
 
@@ -160,8 +200,8 @@ extern "C" fn init() {
         .expect("Failed to share initialization result");
 }
 
-#[no_mangle]
-extern "C" fn handle() {
+#[gstd::async_main]
+async fn main() {
     let mood = unsafe {
         MOOD.as_mut().expect("The contract is not initialized")
     };
@@ -188,7 +228,19 @@ extern "C" fn handle() {
         }
         TmgAction::Feed => mood.feed(),
         TmgAction::Play => mood.play(),
-        TmgAction::Sleep => mood.sleep()
+        TmgAction::Sleep => mood.sleep(),
+        TmgAction::RevokeApproval => tamagotchi.revoke_approval(),
+        TmgAction::Approve(actor_id) => tamagotchi.approve(actor_id),
+        TmgAction::Transfer(actor_id) => tamagotchi.transfer(actor_id),
+        TmgAction::ApproveTokens {
+            account,
+            amount
+        } => tamagotchi.approve_tokens(&account, amount).await,
+        TmgAction::BuyAttribute {
+            store_id,
+            attribute_id,
+        } => tamagotchi.buy_attribute(&store_id, attribute_id).await,
+        TmgAction::SetFTokenContract(actor_id) => mood.set_ft_contract(&actor_id)
     };
 }
 

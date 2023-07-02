@@ -5,6 +5,8 @@ use gmeta::{In, InOut, Metadata};
 use gstd::{prelude::*, ActorId};
 use scale_info::TypeInfo;
 
+pub type AttributeId = u32;
+pub type TransactionId = u64;
 
 #[derive(Default, Encode, Decode, TypeInfo)]
 pub struct Tamagotchi {
@@ -17,6 +19,11 @@ pub struct Tamagotchi {
     pub entertained_block: u32,
     pub rested: u32,
     pub rested_block: u32,
+
+    pub allowed_account: Option<ActorId>,
+
+    pub ft_contract_id: ActorId,
+    pub transaction_id: TransactionId,
 }
 
 #[derive(Encode, Decode, TypeInfo)]
@@ -26,6 +33,19 @@ pub enum TmgAction {
     Feed,
     Play,
     Sleep,
+    Transfer(ActorId),
+    Approve(ActorId),
+    RevokeApproval,
+
+    ApproveTokens {
+        account: ActorId,
+        amount: u128,
+    },
+    SetFTokenContract(ActorId),
+    BuyAttribute {
+        store_id: ActorId,
+        attribute_id: AttributeId,
+    },
 }
 
 #[derive(Encode, Decode, TypeInfo)]
@@ -35,6 +55,15 @@ pub enum TmgEvent {
     Fed,
     Entertained,
     Slept,
+    Transfer(ActorId),
+    Approve(ActorId),
+    RevokeApproval,
+    ApproveTokens { account: ActorId, amount: u128 },
+    ApprovalError,
+    SetFTokenContract,
+    AttributeBought(AttributeId),
+    CompletePrevPurchase(AttributeId),
+    ErrorDuringPurchase,
 }
 
 

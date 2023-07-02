@@ -1,12 +1,13 @@
-//! #3. Homework "Tamagotchi"
+//! #5. Homework "Tamagotchi NFT"
 #![no_std]
-
 use gstd::{msg, debug, prelude::*, exec::{block_timestamp, block_height}};
 use tamagotchi_io::{Tamagotchi, TmgAction, TmgEvent};
 
+mod nftt;
+use nftt::NFTamagotchi;
+
 static mut STATE: Option<Tamagotchi> = None;
 static mut MOOD: Option<Mood> = None;
-
 
 //Mood: Fed (from 1 to 10000), Happy (from 1 to 10000) and Rested (from 1 to 10000).
 pub struct Mood {
@@ -153,6 +154,7 @@ extern "C" fn init() {
             fed_block: bh.clone(),
             entertained_block: bh.clone(),
             rested_block: bh.clone(),
+            allowed_account: None,
         });
     };
 
@@ -188,7 +190,10 @@ extern "C" fn handle() {
         }
         TmgAction::Feed => mood.feed(),
         TmgAction::Play => mood.play(),
-        TmgAction::Sleep => mood.sleep()
+        TmgAction::Sleep => mood.sleep(),
+        TmgAction::RevokeApproval => tamagotchi.revoke_approval(),
+        TmgAction::Approve(actor_id) => tamagotchi.approve(actor_id),
+        TmgAction::Transfer(actor_id) => tamagotchi.transfer(actor_id)
     };
 }
 

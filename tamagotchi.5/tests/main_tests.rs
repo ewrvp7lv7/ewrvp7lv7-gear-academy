@@ -4,14 +4,14 @@ use tamagotchi_io::{Tamagotchi, TmgAction, TmgEvent};
 const OWNER: u64 = 100;
 const PROGRAM_ID: u64 = 1;
 
-fn init_test() -> System {
+pub fn init_test(owner: u64) -> System {
     let sys = System::new();
     sys.init_logger();
     let program = Program::current(&sys);
 
-    let res = program.send_bytes(OWNER, String::from("Satoshi"));
+    let res = program.send_bytes(owner, String::from("Satoshi"));
     let expected_log = Log::builder()
-        .dest(OWNER)
+        .dest(owner)
         .payload(String::from("Success!"));
 
     assert!(!res.log().is_empty());
@@ -22,7 +22,7 @@ fn init_test() -> System {
 
 #[test]
 fn tamagotchi_name() {
-    let sys = init_test();
+    let sys = init_test(OWNER);
     let program = sys.get_program(PROGRAM_ID);
 
     // test for TmgAction::Name
@@ -38,7 +38,7 @@ fn tamagotchi_name() {
 
 #[test]
 fn tamagotchi_mood() {
-    let sys = init_test();
+    let sys = init_test(OWNER);
     let program = sys.get_program(PROGRAM_ID);
 
     // read the state

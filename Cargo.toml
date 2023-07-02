@@ -15,7 +15,16 @@ members = [
     "6-program-factory/escrow/io",
     "7-battle",
     "7-battle/io",
-    "tmg-io"
+    "tmg-io",
+
+    "tamagotchi.5",
+    "tamagotchi.5/io",
+    "tamagotchi.6",
+    "tamagotchi.6/io",
+]
+
+exclude = [
+    "tamagotchi1"
 ]
 
 [workspace.package]
