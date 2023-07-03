@@ -39,6 +39,7 @@ impl AttributeStore {
             .expect("Error in sending a reply `StoreEvent::AttributeCreated");
     }
     async fn buy_attribute(&mut self, attribute_id: AttributeId) {
+
         let (transaction_id, attribute_id) = if let Some((transaction_id, prev_attribute_id)) =
             self.transactions.get(&msg::source())
         {
