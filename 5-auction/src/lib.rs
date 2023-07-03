@@ -4,10 +4,12 @@ use auction_io::*;
 use ft_main_io::{FTokenAction, FTokenEvent, LogicAction};
 use gstd::{errors::ContractError, exec, msg, prelude::*, ActorId, ReservationId};
 use tmg_io::*;
+
 const MIN_DURATION: u64 = 300_000;
 const RESERVATION_AMOUNT: u64 = 50_000_000_000;
 const RESERVATION_DURATION: u32 = 86400;
 const SYSTEM_GAS: u64 = 1_000_000_000;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum Status {
     ReadyToStart,
@@ -199,7 +201,7 @@ impl Auction {
                         0,
                         duration as u32,
                     )
-                    .expect("Error in sending a delayed message `AuctionAction::SettleAuction`");
+                        .expect("Error in sending a delayed message `AuctionAction::SettleAuction`");
                     Ok(AuctionEvent::AuctionStarted)
                 }
             }
@@ -215,8 +217,8 @@ impl Auction {
                     &exec::program_id(),
                     bid,
                 )
-                .await
-                .is_err()
+                    .await
+                    .is_err()
                 {
                     self.transaction = None;
                     return Err(AuctionError::UnableToTransferTokens);
@@ -229,12 +231,12 @@ impl Auction {
                 // it is necessary to rerun the transaction
                 if !self.current_bidder.is_zero()
                     && transfer_tokens(
-                        transaction_id + 1,
-                        &self.ft_contract_id,
-                        &exec::program_id(),
-                        &self.current_bidder,
-                        self.current_bid,
-                    )
+                    transaction_id + 1,
+                    &self.ft_contract_id,
+                    &exec::program_id(),
+                    &self.current_bidder,
+                    self.current_bid,
+                )
                     .await
                     .is_err()
                 {
@@ -267,8 +269,8 @@ impl Auction {
                             &self.prev_tmg_owner,
                             self.current_bid,
                         )
-                        .await
-                        .is_err()
+                            .await
+                            .is_err()
                         {
                             return Err(AuctionError::RerunTransaction);
                         };
@@ -342,6 +344,7 @@ async fn main() {
 fn system_reserve_gas() {
     exec::system_reserve_gas(SYSTEM_GAS).expect("Error during system gas reservation");
 }
+
 async fn transfer_tokens(
     transaction_id: TransactionId,
     token_address: &ActorId,
@@ -410,6 +413,6 @@ extern "C" fn my_handle_signal() {
             AuctionAction::CompleteTx(tx.clone()),
             0,
         )
-        .expect("Failed to send message");
+            .expect("Failed to send message");
     }
 }

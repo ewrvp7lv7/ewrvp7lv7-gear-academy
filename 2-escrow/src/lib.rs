@@ -1,6 +1,8 @@
 #![no_std]
+
 use escrow_io::{EscrowAction, EscrowEvent, EscrowState, InitEscrow};
 use gstd::{msg, prelude::*, ActorId};
+
 static mut ESCROW: Option<Escrow> = None;
 
 #[derive(Default, Encode, Decode, TypeInfo)]
@@ -35,7 +37,25 @@ impl Escrow {
         msg::reply(EscrowEvent::FundsDeposited, 0)
             .expect("Error in reply `EscrowEvent::FundsDeposited");
     }
-    fn confirm_delivery(&mut self) {}
+
+    fn confirm_delivery(&mut self) {
+        assert_eq!(
+            msg::source(),
+            self.buyer,
+            "The message sender must be a buyer"
+        );
+        assert_eq!(
+            self.state,
+            EscrowState::AwaitingDelivery,
+            "State must be `AwaitingDelivery"
+        );
+
+        msg::send(self.seller, "FUNDS", self.price).expect("Unable to send funds to the seller");
+        self.state = EscrowState::Closed;
+
+        msg::reply(EscrowEvent::DeliveryConfirmed, 0)
+            .expect("Failed to reply `EscrowEvent::DeliveryConfirmed`");
+    }
 }
 
 #[no_mangle]

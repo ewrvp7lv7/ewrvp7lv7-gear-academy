@@ -1,0 +1,22 @@
+[package]
+name = "tamagotchi6"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+gstd = { workspace = true, features = ["debug"] }
+parity-scale-codec.workspace = true
+scale-info.workspace = true
+tamagotchi6-io = { path = "io" }
+
+ft-main-io.workspace = true
+store-io.workspace = true
+async-trait = "0.1.68"
+
+[build-dependencies]
+gear-wasm-builder.workspace = true
+tamagotchi6-io = { path = "io" }
+
+[dev-dependencies]
+gtest = { git = "https://github.com/gear-tech/gear.git", branch = "testnet" }
