@@ -1,4 +1,4 @@
-use gstd::{msg, prelude::*, ActorId};
+use gstd::{msg, prelude::*, ActorId, ReservationId};
 use ft_main_io::{FTokenAction, FTokenEvent, LogicAction};
 use store_io::{StoreAction, StoreEvent};
 use async_trait::async_trait;
@@ -8,6 +8,8 @@ pub trait NFTamagotchi {
     fn transfer(&mut self, actor_id: ActorId);
     fn approve(&mut self, actor_id: ActorId);
     fn revoke_approval(&mut self);
+
+    fn reserve_gas(&mut self, reservation_amount: u64, duration: u32);
 }
 
 impl NFTamagotchi for Tamagotchi {
@@ -43,6 +45,19 @@ impl NFTamagotchi for Tamagotchi {
             TmgEvent::RevokeApproval,
             0,
         ).expect("Failed to share the TmgEvent");
+    }
+
+    fn reserve_gas(&mut self, reservation_amount: u64, duration: u32) {
+        let reservation_id = ReservationId::reserve(
+            reservation_amount,
+            duration,
+        ).expect("reservation across executions");
+        self.reservations.push(reservation_id);
+
+        msg::reply(
+            TmgEvent::GasReserved,
+            0
+        ).expect("Failed to share TmgEvent");
     }
 }
 

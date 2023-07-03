@@ -1,7 +1,7 @@
-//! #5. Homework "Tamagotchi NFT"
+//! 7. Homework "Tamagotchi Auto"
 #![no_std]
 
-use gstd::{msg, debug, prelude::*, ActorId, exec::{block_timestamp, block_height}};
+use gstd::{msg, debug, prelude::*, ActorId, exec::{block_timestamp, block_height, system_reserve_gas}};
 use tamagotchi6_io::{Tamagotchi, TmgAction, TmgEvent};
 
 mod nftt;
@@ -193,6 +193,7 @@ extern "C" fn init() {
             allowed_account: None,
             ft_contract_id: ActorId::new(bytes),
             transaction_id: 0,
+            reservations: Vec::new()
         });
     };
 
@@ -231,7 +232,10 @@ async fn main() {
         TmgAction::Sleep => mood.sleep(),
         TmgAction::RevokeApproval => tamagotchi.revoke_approval(),
         TmgAction::Approve(actor_id) => tamagotchi.approve(actor_id),
-        TmgAction::Transfer(actor_id) => tamagotchi.transfer(actor_id),
+        TmgAction::Transfer(actor_id) => {
+            reserve_gas();
+            tamagotchi.transfer(actor_id);
+        },
         TmgAction::ApproveTokens {
             account,
             amount
@@ -239,9 +243,40 @@ async fn main() {
         TmgAction::BuyAttribute {
             store_id,
             attribute_id,
-        } => tamagotchi.buy_attribute(&store_id, attribute_id).await,
-        TmgAction::SetFTokenContract(actor_id) => mood.set_ft_contract(&actor_id)
+        } => {
+            reserve_gas();
+            tamagotchi.buy_attribute(&store_id, attribute_id).await
+        },
+        TmgAction::SetFTokenContract(actor_id) => mood.set_ft_contract(&actor_id),
+        TmgAction::ReserveGas {
+            reservation_amount,
+            duration
+        } => tamagotchi.reserve_gas(reservation_amount, duration),
     };
+}
+
+fn reserve_gas() {
+    system_reserve_gas(1_000_000_000).expect("Error during system gas reservation");
+}
+
+#[no_mangle]
+extern "C" fn my_handle_signal() {
+    let tamagotchi = unsafe {
+        STATE.get_or_insert(Default::default())
+    };
+
+    let reservation_id = if !tamagotchi.reservations.is_empty() {
+        tamagotchi.reservations.remove(0)
+    } else {
+        return;
+    };
+
+    msg::send_from_reservation(
+        reservation_id,
+        tamagotchi.owner,
+        TmgEvent::MakeReservation,
+        0
+    ).expect("Failed to share TmgEvent");
 }
 
 #[no_mangle]

@@ -2,7 +2,7 @@
 
 use codec::{Decode, Encode};
 use gmeta::{In, InOut, Metadata};
-use gstd::{prelude::*, ActorId};
+use gstd::{prelude::*, ActorId, ReservationId};
 use scale_info::TypeInfo;
 
 pub type AttributeId = u32;
@@ -24,6 +24,8 @@ pub struct Tamagotchi {
 
     pub ft_contract_id: ActorId,
     pub transaction_id: TransactionId,
+
+    pub reservations: Vec<ReservationId>,
 }
 
 #[derive(Encode, Decode, TypeInfo)]
@@ -46,6 +48,11 @@ pub enum TmgAction {
         store_id: ActorId,
         attribute_id: AttributeId,
     },
+
+    ReserveGas {
+        reservation_amount: u64,
+        duration: u32,
+    },
 }
 
 #[derive(Encode, Decode, TypeInfo)]
@@ -64,6 +71,9 @@ pub enum TmgEvent {
     AttributeBought(AttributeId),
     CompletePrevPurchase(AttributeId),
     ErrorDuringPurchase,
+
+    MakeReservation,
+    GasReserved,
 }
 
 
